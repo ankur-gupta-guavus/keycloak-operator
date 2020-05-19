@@ -38,7 +38,14 @@ func getKeycloakEnv(cr *v1alpha1.Keycloak, dbSecret *v1.Secret) []v1.EnvVar {
 		},
 		{
 			Name:  "DB_ADDR",
-			Value: PostgresqlServiceName + "." + cr.Namespace + ".svc.cluster.local",
+                        ValueFrom: &v1.EnvVarSource{
+                                SecretKeyRef: &v1.SecretKeySelector{
+                                        LocalObjectReference: v1.LocalObjectReference{
+                                                Name: DatabaseSecretName,
+                                        },
+                                        Key: DatabaseSecretExternalAddressProperty,
+                                },
+                        },
 		},
 		{
 			Name:  "DB_DATABASE",
@@ -77,7 +84,7 @@ func getKeycloakEnv(cr *v1alpha1.Keycloak, dbSecret *v1.Secret) []v1.EnvVar {
 		},
 		{
 			Name:  "JGROUPS_DISCOVERY_PROPERTIES",
-			Value: "dns_query=" + KeycloakDiscoveryServiceName + "." + cr.Namespace + ".svc.cluster.local",
+			Value: "dns_query=" + KeycloakDiscoveryServiceName + "." + cr.Namespace,
 		},
 		// Cache settings
 		{
@@ -119,7 +126,14 @@ func getKeycloakEnv(cr *v1alpha1.Keycloak, dbSecret *v1.Secret) []v1.EnvVar {
 	if cr.Spec.ExternalDatabase.Enabled {
 		env = append(env, v1.EnvVar{
 			Name:  GetServiceEnvVar("SERVICE_HOST"),
-			Value: PostgresqlServiceName + "." + cr.Namespace + ".svc.cluster.local",
+                        ValueFrom: &v1.EnvVarSource{
+                                SecretKeyRef: &v1.SecretKeySelector{
+                                        LocalObjectReference: v1.LocalObjectReference{
+                                                Name: DatabaseSecretName,
+                                        },
+                                        Key: DatabaseSecretHostProperty,
+                                },
+                        },
 		})
 		env = append(env, v1.EnvVar{
 			Name:  GetServiceEnvVar("SERVICE_PORT"),
